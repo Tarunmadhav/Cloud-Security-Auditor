@@ -1,17 +1,16 @@
-export type CloudProvider = "AWS" | "Azure" | "GCP"
 export type Severity = "critical" | "high" | "medium" | "low" | "info"
 export type ScanStatus = "completed" | "running" | "pending" | "failed"
 export type VulnStatus = "open" | "remediated" | "accepted" | "in_progress"
 export type ThreatStatus = "active" | "investigating" | "resolved"
 export type ComplianceStatus = "pass" | "fail" | "na"
+export type ScanScope = "full" | "ssl" | "headers" | "ports"
 
 export interface Scan {
   id: string
   name: string
   target: string
-  cloudProvider: CloudProvider
+  scanScope: ScanScope
   status: ScanStatus
-  scanType: string
   startTime: string
   endTime: string | null
   findingsCount: number
@@ -27,7 +26,6 @@ export interface Vulnerability {
   category: string
   cvssScore: number
   affectedResource: string
-  cloudProvider: CloudProvider
   status: VulnStatus
   description: string
   remediation: string
@@ -54,6 +52,7 @@ export interface ComplianceFramework {
   failedControls: number
   naControls: number
   controls: ComplianceControl[]
+  scanId: string
 }
 
 export interface Threat {
@@ -66,6 +65,7 @@ export interface Threat {
   status: ThreatStatus
   relatedFindings: number
   recommendedAction: string
+  scanId: string
 }
 
 export interface DashboardStats {
@@ -106,4 +106,42 @@ export interface GeneratedReport {
   generatedAt: string
   size: string
   status: "ready" | "generating"
+}
+
+// Raw data gathered from public APIs
+export interface ScanRawData {
+  headers: Record<string, string> | null
+  shodan: ShodanResult | null
+  dns: DNSResult | null
+  ssl: SSLResult | null
+  technologies: string[]
+  resolvedIP: string | null
+  targetUrl: string
+}
+
+export interface ShodanResult {
+  ip: string
+  ports: number[]
+  cpes: string[]
+  hostnames: string[]
+  tags: string[]
+  vulns: string[]
+}
+
+export interface DNSResult {
+  records: { type: string; value: string }[]
+  hasSPF: boolean
+  hasDKIM: boolean
+  hasDMARC: boolean
+}
+
+export interface SSLResult {
+  grade: string
+  protocol: string
+  issuer: string
+  validFrom: string
+  validTo: string
+  daysUntilExpiry: number
+  supportsHSTS: boolean
+  vulnerabilities: string[]
 }

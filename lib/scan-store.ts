@@ -1,12 +1,14 @@
-import type { Scan, Vulnerability } from "./types"
-import { scans as initialScans, vulnerabilities as initialVulnerabilities } from "./mock-data"
+import type { Scan, Vulnerability, Threat, ComplianceFramework } from "./types"
 
-// In-memory store so API routes can mutate the list and GET returns updated data.
-// This resets on server restart, which is fine for a mock/demo app.
+// In-memory store — starts empty, populated only by real scans.
+// Resets on server restart.
 
-const scanStore: Scan[] = [...initialScans]
-const findingsStore: Vulnerability[] = [...initialVulnerabilities]
+const scanStore: Scan[] = []
+const findingsStore: Vulnerability[] = []
+const threatStore: Threat[] = []
+const complianceStore: ComplianceFramework[] = []
 
+// --- Scans ---
 export function getAllScans(): Scan[] {
   return scanStore
 }
@@ -16,7 +18,7 @@ export function getScanById(id: string): Scan | undefined {
 }
 
 export function addScan(scan: Scan): void {
-  scanStore.unshift(scan) // newest first
+  scanStore.unshift(scan)
 }
 
 export function updateScan(id: string, updates: Partial<Scan>): Scan | undefined {
@@ -26,10 +28,45 @@ export function updateScan(id: string, updates: Partial<Scan>): Scan | undefined
   return scanStore[index]
 }
 
+// --- Vulnerabilities / Findings ---
+export function getAllFindings(): Vulnerability[] {
+  return findingsStore
+}
+
 export function getFindingsByScanId(scanId: string): Vulnerability[] {
   return findingsStore.filter((v) => v.scanId === scanId)
 }
 
 export function addFinding(finding: Vulnerability): void {
   findingsStore.push(finding)
+}
+
+export function addFindings(findings: Vulnerability[]): void {
+  findingsStore.push(...findings)
+}
+
+// --- Threats ---
+export function getAllThreats(): Threat[] {
+  return threatStore
+}
+
+export function getThreatsByScanId(scanId: string): Threat[] {
+  return threatStore.filter((t) => t.scanId === scanId)
+}
+
+export function addThreats(threats: Threat[]): void {
+  threatStore.push(...threats)
+}
+
+// --- Compliance ---
+export function getAllCompliance(): ComplianceFramework[] {
+  return complianceStore
+}
+
+export function getComplianceByScanId(scanId: string): ComplianceFramework[] {
+  return complianceStore.filter((c) => c.scanId === scanId)
+}
+
+export function addCompliance(frameworks: ComplianceFramework[]): void {
+  complianceStore.push(...frameworks)
 }

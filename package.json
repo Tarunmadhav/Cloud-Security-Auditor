@@ -54,6 +54,8 @@
     "react-hook-form": "^7.54.1",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.0",
+    "ai": "^6.0.0",
+    "@ai-sdk/groq": "^1.2.0",
     "sonner": "^1.7.1",
     "swr": "^2.3.3",
     "tailwind-merge": "^3.3.1",

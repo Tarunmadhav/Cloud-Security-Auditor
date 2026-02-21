@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server"
-import { getScanById, getFindingsByScanId } from "@/lib/scan-store"
+import {
+  getScanById,
+  getFindingsByScanId,
+  getThreatsByScanId,
+  getComplianceByScanId,
+} from "@/lib/scan-store"
 
 export const dynamic = "force-dynamic"
 
@@ -15,6 +20,8 @@ export async function GET(
   }
 
   const findings = getFindingsByScanId(id)
+  const threats = getThreatsByScanId(id)
+  const compliance = getComplianceByScanId(id)
 
-  return NextResponse.json({ ...scan, findings })
+  return NextResponse.json({ ...scan, findings, threats, compliance })
 }

@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server"
-import { vulnerabilities } from "@/lib/mock-data"
+import { getAllFindings } from "@/lib/scan-store"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const severity = searchParams.get("severity")
   const status = searchParams.get("status")
-  const provider = searchParams.get("provider")
 
-  await new Promise((r) => setTimeout(r, 100))
-
-  let filtered = [...vulnerabilities]
+  let filtered = getAllFindings()
 
   if (severity) {
     const severities = severity.split(",")
@@ -18,10 +17,6 @@ export async function GET(request: Request) {
 
   if (status) {
     filtered = filtered.filter((v) => v.status === status)
-  }
-
-  if (provider) {
-    filtered = filtered.filter((v) => v.cloudProvider === provider)
   }
 
   return NextResponse.json(filtered)

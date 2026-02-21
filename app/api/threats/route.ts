@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
-import { threats } from "@/lib/mock-data"
+import { getAllThreats } from "@/lib/scan-store"
+
+export const dynamic = "force-dynamic"
 
 export async function GET() {
-  await new Promise((r) => setTimeout(r, 100))
-  return NextResponse.json(threats)
+  return NextResponse.json(getAllThreats())
 }
