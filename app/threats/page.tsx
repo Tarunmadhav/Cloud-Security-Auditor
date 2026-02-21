@@ -31,6 +31,7 @@ import { SeverityBadge } from "@/components/severity-badge"
 import { threats } from "@/lib/mock-data"
 import { AlertTriangle, Shield, Eye, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatDate } from "@/lib/format-date"
 import type { Threat, Severity, ThreatStatus } from "@/lib/types"
 
 const statusConfig: Record<ThreatStatus, { label: string; className: string; icon: typeof AlertTriangle }> = {
@@ -188,7 +189,7 @@ export default function ThreatsPage() {
           </CardHeader>
           <CardContent>
             <div className="relative flex flex-col gap-0">
-              {threats
+              {[...threats]
                 .sort(
                   (a, b) =>
                     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -237,7 +238,7 @@ export default function ThreatsPage() {
                         </span>
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
                           <Clock className="size-2.5" />
-                          {new Date(threat.timestamp).toLocaleString()}
+                          {formatDate(threat.timestamp)}
                         </div>
                       </button>
                     </div>
@@ -297,7 +298,7 @@ export default function ThreatsPage() {
                     {threat.relatedFindings} findings
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {new Date(threat.timestamp).toLocaleString()}
+                    {formatDate(threat.timestamp)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -362,7 +363,7 @@ export default function ThreatsPage() {
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border pt-4">
                   <span>Related Findings: {selectedThreat.relatedFindings}</span>
-                  <span>{new Date(selectedThreat.timestamp).toLocaleString()}</span>
+                  <span>{formatDate(selectedThreat.timestamp)}</span>
                 </div>
               </div>
             </>

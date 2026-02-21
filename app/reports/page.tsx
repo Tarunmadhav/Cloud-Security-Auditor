@@ -29,6 +29,7 @@ import {
   Plus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatDate, formatDateShort } from "@/lib/format-date"
 import type { GeneratedReport, ReportTemplate } from "@/lib/types"
 
 const typeIcons: Record<string, typeof FileText> = {
@@ -110,7 +111,7 @@ export default function ReportsPage() {
                   {template.lastGenerated && (
                     <span className="text-[10px] text-muted-foreground">
                       Last generated:{" "}
-                      {new Date(template.lastGenerated).toLocaleDateString()}
+                      {formatDateShort(template.lastGenerated)}
                     </span>
                   )}
                   <div className="flex items-center gap-2 mt-auto">
@@ -180,7 +181,7 @@ export default function ReportsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {new Date(report.generatedAt).toLocaleString()}
+                      {formatDate(report.generatedAt)}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {report.size}
@@ -219,7 +220,7 @@ export default function ReportsPage() {
                   </h3>
                   <div className="flex flex-col gap-2 text-xs text-muted-foreground">
                     <p>Report Type: {previewReport.type}</p>
-                    <p>Generated: {new Date().toLocaleString()}</p>
+                    <p>Generated: {formatDate(new Date().toISOString())}</p>
                     <p>Classification: CONFIDENTIAL</p>
                   </div>
                 </div>

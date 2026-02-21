@@ -30,6 +30,7 @@ import {
   vulnerabilities,
   threats,
 } from "@/lib/mock-data"
+import { formatDate } from "@/lib/format-date"
 import type { CloudProvider } from "@/lib/types"
 
 export default function DashboardPage() {
@@ -40,7 +41,7 @@ export default function DashboardPage() {
       ? vulnerabilities
       : vulnerabilities.filter((v) => v.cloudProvider === providerFilter)
 
-  const recentScans = scans
+  const recentScans = [...scans]
     .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
     .slice(0, 5)
 
@@ -53,7 +54,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Security Overview</h1>
           <p className="text-sm text-muted-foreground">
-            Last scan: {new Date(scans[0].startTime).toLocaleString()}
+            Last scan: {formatDate(scans[0].startTime)}
           </p>
         </div>
         <Select value={providerFilter} onValueChange={setProviderFilter}>

@@ -11,17 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import React from "react"
 import { Badge } from "@/components/ui/badge"
 import { SeverityBadge } from "@/components/severity-badge"
 import { CloudProviderIcon } from "@/components/cloud-provider-icon"
 import { vulnerabilities } from "@/lib/mock-data"
 import { ChevronDown, Bug } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatDate } from "@/lib/format-date"
 import type { Severity, CloudProvider, VulnStatus } from "@/lib/types"
 
 const vulnStatusConfig: Record<VulnStatus, { label: string; className: string }> = {
@@ -133,72 +130,69 @@ export default function VulnerabilitiesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((vuln) => (
-                <Collapsible
-                  key={vuln.id}
-                  open={expandedId === vuln.id}
-                  onOpenChange={(open) => setExpandedId(open ? vuln.id : null)}
-                  asChild
-                >
-                  <>
-                    <CollapsibleTrigger asChild>
-                      <TableRow className="border-border hover:bg-accent/50 cursor-pointer">
-                        <TableCell>
-                          <ChevronDown
-                            className={cn(
-                              "size-3.5 text-muted-foreground transition-transform",
-                              expandedId === vuln.id && "rotate-180"
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium text-card-foreground max-w-[280px] truncate">
-                          {vuln.title}
-                        </TableCell>
-                        <TableCell>
-                          <SeverityBadge severity={vuln.severity as Severity} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-card-foreground">
-                              {vuln.cvssScore.toFixed(1)}
-                            </span>
-                            <div className="h-1.5 w-12 rounded-full bg-muted">
-                              <div
-                                className="h-1.5 rounded-full transition-all"
-                                style={{
-                                  width: `${(vuln.cvssScore / 10) * 100}%`,
-                                  backgroundColor:
-                                    vuln.cvssScore >= 9
-                                      ? "oklch(0.65 0.25 25)"
-                                      : vuln.cvssScore >= 7
-                                        ? "oklch(0.75 0.2 55)"
-                                        : vuln.cvssScore >= 4
-                                          ? "oklch(0.85 0.18 85)"
-                                          : "oklch(0.75 0.18 155)",
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {vuln.category}
-                        </TableCell>
-                        <TableCell>
-                          <CloudProviderIcon provider={vuln.cloudProvider as CloudProvider} />
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={cn(
-                              "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-                              vulnStatusConfig[vuln.status as VulnStatus].className
-                            )}
-                          >
-                            {vulnStatusConfig[vuln.status as VulnStatus].label}
+              {filtered.map((vuln) => {
+                const isExpanded = expandedId === vuln.id
+                return (
+                  <React.Fragment key={vuln.id}>
+                    <TableRow
+                      className="border-border hover:bg-accent/50 cursor-pointer"
+                      onClick={() => setExpandedId(isExpanded ? null : vuln.id)}
+                    >
+                      <TableCell>
+                        <ChevronDown
+                          className={cn(
+                            "size-3.5 text-muted-foreground transition-transform",
+                            isExpanded && "rotate-180"
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium text-card-foreground max-w-[280px] truncate">
+                        {vuln.title}
+                      </TableCell>
+                      <TableCell>
+                        <SeverityBadge severity={vuln.severity as Severity} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-card-foreground">
+                            {vuln.cvssScore.toFixed(1)}
                           </span>
-                        </TableCell>
-                      </TableRow>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent asChild>
+                          <div className="h-1.5 w-12 rounded-full bg-muted">
+                            <div
+                              className="h-1.5 rounded-full transition-all"
+                              style={{
+                                width: `${(vuln.cvssScore / 10) * 100}%`,
+                                backgroundColor:
+                                  vuln.cvssScore >= 9
+                                    ? "oklch(0.65 0.25 25)"
+                                    : vuln.cvssScore >= 7
+                                      ? "oklch(0.75 0.2 55)"
+                                      : vuln.cvssScore >= 4
+                                        ? "oklch(0.85 0.18 85)"
+                                        : "oklch(0.75 0.18 155)",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {vuln.category}
+                      </TableCell>
+                      <TableCell>
+                        <CloudProviderIcon provider={vuln.cloudProvider as CloudProvider} />
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+                            vulnStatusConfig[vuln.status as VulnStatus].className
+                          )}
+                        >
+                          {vulnStatusConfig[vuln.status as VulnStatus].label}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                    {isExpanded && (
                       <TableRow className="border-border bg-accent/30 hover:bg-accent/30">
                         <TableCell colSpan={7}>
                           <div className="flex flex-col gap-4 py-2">
@@ -228,17 +222,16 @@ export default function VulnerabilitiesPage() {
                                 </code>
                               </span>
                               <span>
-                                Discovered:{" "}
-                                {new Date(vuln.discoveredAt).toLocaleString()}
+                                Discovered: {formatDate(vuln.discoveredAt)}
                               </span>
                             </div>
                           </div>
                         </TableCell>
                       </TableRow>
-                    </CollapsibleContent>
-                  </>
-                </Collapsible>
-              ))}
+                    )}
+                  </React.Fragment>
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>
