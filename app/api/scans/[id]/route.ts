@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
-import { getScanById } from "@/lib/scan-store"
-import { vulnerabilities } from "@/lib/mock-data"
+import { getScanById, getFindingsByScanId } from "@/lib/scan-store"
 
 export const dynamic = "force-dynamic"
 
@@ -15,7 +14,7 @@ export async function GET(
     return NextResponse.json({ error: "Scan not found" }, { status: 404 })
   }
 
-  const findings = vulnerabilities.filter((v) => v.scanId === id)
+  const findings = getFindingsByScanId(id)
 
   return NextResponse.json({ ...scan, findings })
 }
