@@ -1,3 +1,4 @@
+export type CloudProvider = "AWS" | "Azure" | "GCP"
 export type Severity = "critical" | "high" | "medium" | "low" | "info"
 export type ScanStatus = "completed" | "running" | "pending" | "failed"
 export type VulnStatus = "open" | "remediated" | "accepted" | "in_progress"
@@ -17,6 +18,7 @@ export interface Scan {
   progress: number
   criticalCount: number
   highCount: number
+  cloudProvider: CloudProvider
 }
 
 export interface Vulnerability {
@@ -26,6 +28,7 @@ export interface Vulnerability {
   category: string
   cvssScore: number
   affectedResource: string
+  cloudProvider: CloudProvider
   status: VulnStatus
   description: string
   remediation: string
