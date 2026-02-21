@@ -304,6 +304,25 @@ export const threats: Threat[] = [
   },
 ]
 
+// --- Vulnerability Trend (30 days) ---
+export const vulnerabilityTrend = [
+  { date: "2026-01-24", critical: 8, high: 14, medium: 22, low: 31 },
+  { date: "2026-01-26", critical: 9, high: 15, medium: 21, low: 29 },
+  { date: "2026-01-28", critical: 7, high: 13, medium: 23, low: 30 },
+  { date: "2026-01-30", critical: 10, high: 16, medium: 20, low: 28 },
+  { date: "2026-02-01", critical: 11, high: 18, medium: 24, low: 32 },
+  { date: "2026-02-03", critical: 10, high: 17, medium: 22, low: 30 },
+  { date: "2026-02-05", critical: 12, high: 19, medium: 25, low: 33 },
+  { date: "2026-02-07", critical: 11, high: 16, medium: 23, low: 31 },
+  { date: "2026-02-09", critical: 13, high: 18, medium: 21, low: 29 },
+  { date: "2026-02-11", critical: 14, high: 20, medium: 24, low: 34 },
+  { date: "2026-02-13", critical: 12, high: 17, medium: 22, low: 30 },
+  { date: "2026-02-15", critical: 11, high: 15, medium: 20, low: 28 },
+  { date: "2026-02-17", critical: 13, high: 18, medium: 23, low: 31 },
+  { date: "2026-02-19", critical: 12, high: 16, medium: 21, low: 29 },
+  { date: "2026-02-21", critical: 12, high: 17, medium: 22, low: 30 },
+]
+
 // --- Compliance Frameworks ---
 export const complianceFrameworks: ComplianceFramework[] = [
   {
