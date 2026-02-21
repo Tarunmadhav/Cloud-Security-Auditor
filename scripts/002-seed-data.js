@@ -44,11 +44,13 @@ async function seed() {
   console.log("Seeded threats");
 
   console.log("Seeding compliance frameworks...");
-  await sql`INSERT INTO compliance_frameworks (id, name, short_name, score, total_controls, passed_controls, failed_controls, na_controls, scan_id) VALUES
-    ('cf-001', 'CIS Benchmarks', 'CIS', 87, 142, 124, 14, 4, 'scan-001'),
-    ('cf-002', 'ISO 27001', 'ISO', 74, 114, 84, 26, 4, 'scan-001'),
-    ('cf-003', 'NIST CSF', 'NIST', 91, 108, 98, 8, 2, 'scan-001')
-  ON CONFLICT (id) DO NOTHING`;
+  await sql`INSERT INTO compliance_frameworks (name, short_name, score, total_controls, passed_controls, failed_controls, na_controls, scan_id)
+  SELECT * FROM (VALUES
+    ('CIS Benchmarks', 'CIS', 87, 142, 124, 14, 4, 'scan-001'),
+    ('ISO 27001', 'ISO', 74, 114, 84, 26, 4, 'scan-001'),
+    ('NIST CSF', 'NIST', 91, 108, 98, 8, 2, 'scan-001')
+  ) AS v(name, short_name, score, total_controls, passed_controls, failed_controls, na_controls, scan_id)
+  WHERE NOT EXISTS (SELECT 1 FROM compliance_frameworks WHERE compliance_frameworks.short_name = v.short_name)`;
   console.log("Seeded compliance frameworks");
 
   console.log("All data seeded successfully!");
