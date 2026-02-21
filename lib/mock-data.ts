@@ -304,7 +304,7 @@ export const threats: Threat[] = [
   },
 ]
 
-// --- Vulnerability Trend (30 days) ---
+// --- Vulnerability Trend (30 Days) ---
 export const vulnerabilityTrend = [
   { date: "2026-01-24", critical: 8, high: 14, medium: 22, low: 31 },
   { date: "2026-01-26", critical: 9, high: 15, medium: 21, low: 29 },
