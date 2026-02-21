@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import useSWR from "swr"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -17,9 +18,10 @@ import { Button } from "@/components/ui/button"
 import { ScanStatusBadge } from "@/components/scan-status-badge"
 import { CloudProviderIcon } from "@/components/cloud-provider-icon"
 import { NewScanDialog } from "@/components/new-scan-dialog"
-import { scans } from "@/lib/mock-data"
-import { ExternalLink } from "lucide-react"
-import type { ScanStatus, CloudProvider } from "@/lib/types"
+import { ExternalLink, Loader2 } from "lucide-react"
+import type { Scan, ScanStatus, CloudProvider } from "@/lib/types"
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 function formatDuration(start: string, end: string | null): string {
   if (!end) return "In progress..."
@@ -30,24 +32,29 @@ function formatDuration(start: string, end: string | null): string {
 }
 
 export default function ScansPage() {
+  const { data: scans, isLoading, mutate } = useSWR<Scan[]>("/api/scans", fetcher, {
+    refreshInterval: 5000, // poll every 5s to catch running scan progress updates
+  })
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [providerFilter, setProviderFilter] = useState<string>("all")
 
+  const scanList = scans ?? []
+
   const filtered = useMemo(() => {
-    return scans.filter((scan) => {
+    return scanList.filter((scan) => {
       if (statusFilter !== "all" && scan.status !== statusFilter) return false
       if (providerFilter !== "all" && scan.cloudProvider !== providerFilter) return false
       return true
     })
-  }, [statusFilter, providerFilter])
+  }, [scanList, statusFilter, providerFilter])
 
   const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: scans.length }
-    for (const scan of scans) {
+    const counts: Record<string, number> = { all: scanList.length }
+    for (const scan of scanList) {
       counts[scan.status] = (counts[scan.status] || 0) + 1
     }
     return counts
-  }, [])
+  }, [scanList])
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,10 +62,10 @@ export default function ScansPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Scan Management</h1>
           <p className="text-sm text-muted-foreground">
-            {scans.length} scans configured across all cloud providers
+            {scanList.length} scans configured across all cloud providers
           </p>
         </div>
-        <NewScanDialog />
+        <NewScanDialog onScanCreated={() => mutate()} />
       </div>
 
       {/* Status Tabs */}
@@ -90,75 +97,81 @@ export default function ScansPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="text-muted-foreground">Name</TableHead>
-                <TableHead className="text-muted-foreground">Target</TableHead>
-                <TableHead className="text-muted-foreground">Provider</TableHead>
-                <TableHead className="text-muted-foreground">Type</TableHead>
-                <TableHead className="text-muted-foreground">Status</TableHead>
-                <TableHead className="text-muted-foreground">Findings</TableHead>
-                <TableHead className="text-muted-foreground">Duration</TableHead>
-                <TableHead className="text-muted-foreground sr-only">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((scan) => (
-                <TableRow key={scan.id} className="border-border hover:bg-accent/50">
-                  <TableCell>
-                    <Link
-                      href={`/scans/${scan.id}`}
-                      className="font-medium text-card-foreground hover:text-primary transition-colors"
-                    >
-                      {scan.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground font-mono max-w-[200px] truncate">
-                    {scan.target}
-                  </TableCell>
-                  <TableCell>
-                    <CloudProviderIcon provider={scan.cloudProvider as CloudProvider} />
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {scan.scanType}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <ScanStatusBadge status={scan.status as ScanStatus} />
-                      {scan.status === "running" && (
-                        <Progress value={scan.progress} className="h-1 w-20" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-card-foreground">{scan.findingsCount}</span>
-                      {scan.criticalCount > 0 && (
-                        <span className="text-severity-critical">
-                          {scan.criticalCount}C
-                        </span>
-                      )}
-                      {scan.highCount > 0 && (
-                        <span className="text-severity-high">{scan.highCount}H</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {formatDuration(scan.startTime, scan.endTime)}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" asChild className="size-7">
-                      <Link href={`/scans/${scan.id}`}>
-                        <ExternalLink className="size-3.5" />
-                        <span className="sr-only">View scan details</span>
-                      </Link>
-                    </Button>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="text-muted-foreground">Name</TableHead>
+                  <TableHead className="text-muted-foreground">Target</TableHead>
+                  <TableHead className="text-muted-foreground">Provider</TableHead>
+                  <TableHead className="text-muted-foreground">Type</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-muted-foreground">Findings</TableHead>
+                  <TableHead className="text-muted-foreground">Duration</TableHead>
+                  <TableHead className="text-muted-foreground sr-only">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((scan) => (
+                  <TableRow key={scan.id} className="border-border hover:bg-accent/50">
+                    <TableCell>
+                      <Link
+                        href={`/scans/${scan.id}`}
+                        className="font-medium text-card-foreground hover:text-primary transition-colors"
+                      >
+                        {scan.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-mono max-w-[200px] truncate">
+                      {scan.target}
+                    </TableCell>
+                    <TableCell>
+                      <CloudProviderIcon provider={scan.cloudProvider as CloudProvider} />
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {scan.scanType}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <ScanStatusBadge status={scan.status as ScanStatus} />
+                        {scan.status === "running" && (
+                          <Progress value={scan.progress} className="h-1 w-20" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-card-foreground">{scan.findingsCount}</span>
+                        {scan.criticalCount > 0 && (
+                          <span className="text-severity-critical">
+                            {scan.criticalCount}C
+                          </span>
+                        )}
+                        {scan.highCount > 0 && (
+                          <span className="text-severity-high">{scan.highCount}H</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {formatDuration(scan.startTime, scan.endTime)}
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" asChild className="size-7">
+                        <Link href={`/scans/${scan.id}`}>
+                          <ExternalLink className="size-3.5" />
+                          <span className="sr-only">View scan details</span>
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

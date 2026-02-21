@@ -1,8 +1,8 @@
 "use client"
 
-import { use } from "react"
 import Link from "next/link"
-import { ArrowLeft, Clock, Target, Cloud, FileSearch } from "lucide-react"
+import useSWR from "swr"
+import { ArrowLeft, Clock, Target, Cloud, FileSearch, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -17,8 +17,10 @@ import {
 import { ScanStatusBadge } from "@/components/scan-status-badge"
 import { SeverityBadge } from "@/components/severity-badge"
 import { CloudProviderIcon } from "@/components/cloud-provider-icon"
-import { scans, vulnerabilities } from "@/lib/mock-data"
-import type { CloudProvider, ScanStatus, Severity, VulnStatus } from "@/lib/types"
+import type { Scan, Vulnerability, CloudProvider, ScanStatus, Severity, VulnStatus } from "@/lib/types"
+import { use } from "react"
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 const vulnStatusLabel: Record<VulnStatus, { label: string; className: string }> = {
   open: { label: "Open", className: "text-severity-critical" },
@@ -33,10 +35,21 @@ export default function ScanDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
-  const scan = scans.find((s) => s.id === id)
-  const findings = vulnerabilities.filter((v) => v.scanId === id)
+  const { data, isLoading } = useSWR<Scan & { findings: Vulnerability[] }>(
+    `/api/scans/${id}`,
+    fetcher,
+    { refreshInterval: 5000 }
+  )
 
-  if (!scan) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!data || data.error) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
         <h2 className="text-lg font-semibold text-foreground">Scan Not Found</h2>
@@ -49,6 +62,9 @@ export default function ScanDetailPage({
       </div>
     )
   }
+
+  const scan = data
+  const findings = data.findings ?? []
 
   const startDate = new Date(scan.startTime)
   const endDate = scan.endTime ? new Date(scan.endTime) : null
